@@ -25,11 +25,37 @@ async function run(){
         const gamesCollection = database.collection('Games');
 
 
-        app.get('/games', async(req, res) => {
+        app.get('/allgames', async(req, res) => {
             const cursor = gamesCollection.find({});
             const games = await cursor.toArray();
             res.send(games);
-        })
+        });
+
+        app.get('/games/onsale', async(req, res) => {
+            const query = {"discount": { $gt: 0 }};
+            const games = await gamesCollection.find(query).toArray();
+            res.json(games);
+        });
+
+        app.get('/games/free', async(req, res) => {
+            const query = {"price": 0};
+            const games = await gamesCollection.find(query).toArray();
+            res.json(games);
+        });
+
+        app.get('/games/bestseller', async(req, res) => {
+            const query = {"soldcopies": { $gt: 100000 }};
+            const games = await gamesCollection.find(query).toArray();
+            res.json(games);
+        });
+
+        app.get('/games/toprated', async(req, res) => {
+            const query = {"rate": { $gt: 8 }};
+            const games = await gamesCollection.find(query).toArray();
+            res.json(games);
+        });
+
+
     } finally {
 
     }
