@@ -16,6 +16,28 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
+
+async function run(){
+
+    try{
+        await client.connect();
+        const database = client.db('GameTag');
+        const gamesCollection = database.collection('Games');
+
+
+        app.get('/games', async(req, res) => {
+            const cursor = gamesCollection.find({});
+            const games = await cursor.toArray();
+            res.send(games);
+        })
+    } finally {
+
+    }
+}
+
+run().catch(console.dir);
+
+
 app.get('/', async (req, res) => {
     res.send('ok')
 })
