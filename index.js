@@ -87,6 +87,39 @@ async function run(){
             res.send(result);
         })
 
+        app.get('/orders/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {clientId: id};
+            const orders = await ordersCollection.find(query).toArray();
+            res.json(orders);
+        })
+
+        // DELETE a order 
+        app.delete('/orders/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await ordersCollection.deleteOne(query);
+            res.json(result);
+        });
+
+        // UPDATE a order 
+        app.patch('/orders/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await ordersCollection.updateOne(query, { $set: {status: "confirmed" }});
+            res.json(result);
+        });
+
+
+        app.patch('/orders/pay/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await ordersCollection.updateOne(query, { $set: {status: "paid" }});
+            res.json(result);
+        });
+
+
+
     } finally {
 
     }
