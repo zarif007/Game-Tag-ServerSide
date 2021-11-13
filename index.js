@@ -25,6 +25,7 @@ async function run(){
         const gamesCollection = database.collection('Games');
         const usersCollection = database.collection('Users');
         const ordersCollection = database.collection('Orders');
+        const reviewsCollection = database.collection('Reviews');
 
 
         app.get('/allgames', async(req, res) => {
@@ -84,6 +85,13 @@ async function run(){
         app.post('/orders', async(req, res) => {
             const order = req.body;
             const result = await ordersCollection.insertOne(order);
+            res.send(result);
+        })
+
+        app.post('/reviews', async(req, res) => {
+            const review = req.body;
+            console.log(review);
+            const result = await reviewsCollection.insertOne(review);
             res.send(result);
         })
 
