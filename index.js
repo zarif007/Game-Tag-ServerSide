@@ -23,6 +23,8 @@ async function run(){
         await client.connect();
         const database = client.db('GameTag');
         const gamesCollection = database.collection('Games');
+        const usersCollection = database.collection('Users');
+        const ordersCollection = database.collection('Orders');
 
 
         app.get('/allgames', async(req, res) => {
@@ -62,6 +64,28 @@ async function run(){
             res.json(game);
         });
 
+        app.post('/users', async(req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            console.log(result);
+            res.json(result);
+        })
+
+        app.put('/users', async(req, res) => {
+            const user = req.body;
+            console.log('userput', user);
+            const filter = {email: user.email};
+            const options = {upsert: true};
+            const updateDoc = {$set: user};
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.json(result);
+        })
+
+        app.post('/orders', async(req, res) => {
+            const order = req.body;
+            const result = await ordersCollection.insertOne(order);
+            res.send(result);
+        })
 
     } finally {
 
