@@ -153,7 +153,11 @@ async function run(){
             const id = req.params.id;
             const query = {fireBaseId: id};
             const user = await usersCollection.findOne(query);
-            user.role === 'Admin' ? res.send(true) : res.send(false);
+            let isAdmin = false;
+            if(user?.role === 'Admin'){
+                isAdmin = true;
+            }
+            res.json({isAdmin: isAdmin});
         })
 
         app.patch('/makeadmin', async(req, res) => {
