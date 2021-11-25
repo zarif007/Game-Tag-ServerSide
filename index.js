@@ -153,7 +153,7 @@ async function run(){
             const id = req.params.id;
             const query = {fireBaseId: id};
             const user = await usersCollection.findOne(query);
-            res.send(user);
+            user.role === 'Admin' ? res.send(true) : res.send(false);
         })
 
         app.patch('/makeadmin', async(req, res) => {
