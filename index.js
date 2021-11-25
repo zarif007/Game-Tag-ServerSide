@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
+const admin = require("firebase-admin");
 const ObjectId = require('mongodb').ObjectId;
 
 const { MongoClient } = require('mongodb');
@@ -15,7 +16,30 @@ app.use(express.json());
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.5cvzz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+// gametag-firebase-adminsdk.json
 
+
+const serviceAccount = require("./gametag-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+
+async function verifyToken(req, res, next){
+
+    if(req.headers?.authorization?.startsWith('Token ')){
+        let token = req.headers.authorization.split(' ')[1];
+
+        try{
+            const decodedUser = await admin.auth().verifyIdToken(token);
+            req.decodedEmail = decodedUser.email;
+        } catch{
+            //
+        }
+    }
+    next();
+}
 
 async function run(){
 
@@ -76,11 +100,21 @@ async function run(){
             res.json(result);
         })
 
-        app.post('/games', async(req, res) => {
+        app.post('/games', verifyToken, async(req, res) => {
             const user = req.body;
-            const result = await gamesCollection.insertOne(user);
-            console.log(result);
-            res.json(result);
+
+            const requester = req.decodedEmail;
+            
+            if(requester){
+                const reqAcount = await usersCollection.findOne({email: requester})
+
+                if(reqAcount.role === 'Admin'){
+                    const result = await gamesCollection.insertOne(user);
+                    res.json(result);
+                }
+            } else {
+                res.status(403).json({message: 'You do not have the authority'})
+            }
         })
 
         app.put('/users', async(req, res) => {
@@ -160,12 +194,22 @@ async function run(){
             res.json({isAdmin: isAdmin});
         })
 
-        app.patch('/makeadmin', async(req, res) => {
+        app.patch('/makeadmin', verifyToken, async(req, res) => {
             const email = req.body.email;
-            const query = {email: email};
-            console.log('email', email);
-            const result = await usersCollection.updateOne(query, { $set: {role: "Admin" }});
-            res.json(result);
+            
+            const requester = req.decodedEmail;
+
+            if(requester){
+                const reqAcount = await usersCollection.findOne({email: requester})
+
+                if(reqAcount.role === 'Admin'){
+                    const query = {email: email};
+                    const result = await usersCollection.updateOne(query, { $set: {role: "Admin" }});
+                    res.json(result);
+                }
+            } else {
+                res.status(403).json({message: 'You do not have the authority'})
+            }
         });
 
 
